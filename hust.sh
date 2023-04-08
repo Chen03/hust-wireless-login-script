@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 if { [ -z "$1" ] || [ -z "$2" ] ;} \
   && { [ -z "$HUST_USERNAME" ] || [ -z "$HUST_PASSWORD" ] ;}
@@ -22,10 +22,10 @@ else
 fi
 
 # Test the response html are redirected or not
-if [[ "$response" == *"baidu"* ]]
+if printf '%s' "$response" | grep -Fqe "baidu"
 then
   echo "You're already logged in."
-elif [[ "$response" == *"eportal"* ]] # Redirected to redirection page //123.123.123.123
+elif printf '%s' "$response" | grep -Fqe "eportal" # Redirected to redirection page //123.123.123.123
 then
   # Get the query string
   query=$(echo "$response" | awk 'match($0, /\?.*["'\'']/) {print substr($0, RSTART+1, RLENGTH-2)}')
@@ -43,10 +43,9 @@ then
     -d "operatorPwd=" \
     -d "validCode=" \
     -d "passwordEncrypt=false" \
-    "http://192.168.50.3:8080/eportal/InterFace.do?method=login" \
-    | jq '.result')
+    "http://192.168.50.3:8080/eportal/InterFace.do?method=login")
   then
-    if [[ "$result" == "\"success\"" ]]; then
+    if printf '%s' "$result" | grep -Fqe "success"; then
       echo "Login successfully."
     else
       echo "Login failed. The response is: $result"
@@ -54,4 +53,6 @@ then
   else
     echo "Post login request failed."
   fi
+else
+  printf 'No pattern matched. Response: %s' "$response"
 fi
